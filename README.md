@@ -162,11 +162,12 @@ Note: `decode` gives `token.claims` before the signature is verified, so that `J
 
 | Level | What | Command |
 | --- | --- | --- |
-| L0 | `tests/decode.roc`, `tests/check.roc`, `tests/jwk.roc` (109 expects). Vectors: RFC 7515 A.1 to A.5, RFC 8037 A.4, and new RS256 (GitHub Actions OIDC shape), PS256, ES256, EdDSA tokens and a JWK Set. `research/vectors.py` makes `tests/lib/Vectors.roc` and verifies each signature with Python `cryptography`, so each signing input is proven by a key. | `roc test tests/<file>.roc` |
+| L0 | `tests/decode.roc`, `tests/check.roc`, `tests/jwk.roc`, `tests/webcrypto.roc` (110 expects). Vectors: RFC 7515 A.1 to A.5, RFC 8037 A.4, and new RS256 (GitHub Actions OIDC shape), PS256, ES256, EdDSA tokens and a JWK Set. `research/vectors.py` makes `tests/lib/Vectors.roc` and verifies each signature with Python `cryptography`, so each signing input is proven by a key. | `roc test tests/<file>.roc` |
 | L1 | `fuzz/decode.roc` (roc-fuzz): decode never crashes; when it is `Ok`, the signing input is the text before the second `.`, the signature re-encodes to the third part, the `alg` is in the allowlist. | `scripts/test.sh` |
+| WebCrypto | `scripts/webcrypto.sh`: `roc tests/webcrypto.roc` prints `Jwk.to_public_json` of the RS256, PS256, ES256 and EdDSA test keys (selected with `Jwk.parse_set` and `Jwk.select`); `scripts/webcrypto.mjs` imports each text with Node `crypto.subtle.importKey("jwk", ...)` and verifies the token signature over `signing_input`. Two mutants of `to_public_json` (RSA with no `e`, EC with `x` and `y` swapped) must fail the import. | `scripts/webcrypto.sh ROC` (also in `scripts/test.sh`) |
 | Mutants | `scripts/mutants.py`: 10 mutants of the trickiest rules (alg `none`, the allowlist, the `exp` and `nbf` leeway compare, `aud` list any/all, the `aud` list parse, canonical base64url, the signing input, `select` across key types, `crit`). All are killed. | `python3 -I scripts/mutants.py ROC` |
 
-`scripts/test.sh [ROC]` runs `roc check`, `roc fmt --check`, the L0 tests and the L1 target. Use the nightly in `.roc-version` (nightly-2026-10-31-f7bef6b, the nightly of the Talon Worker).
+`scripts/test.sh [ROC]` runs `roc check`, `roc fmt --check`, the L0 tests, the L1 target and the WebCrypto check. Use the nightly in `.roc-version` (nightly-2026-10-31-f7bef6b, the nightly of the Talon Worker).
 
 ## Dependencies
 

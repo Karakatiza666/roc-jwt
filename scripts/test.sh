@@ -33,5 +33,7 @@ for f in fuzz/*.roc; do
 	run "$FUZZ_ROC" build --fuzz "$f" --output="$W/fuzz/$n"
 	run "$W/fuzz/$n" run --runs="$RUNS" --seed=1 --time=0 --artifact-dir="$W/fuzz/art-$n"
 done
+# K5 in a real WebCrypto (needs node; skipped with a note when node is not there).
+if command -v node >/dev/null; then run "$HERE/scripts/webcrypto.sh" "$ROC"; else echo "== SKIPPED scripts/webcrypto.sh: no node"; fi
 echo
 [ $FAIL = 0 ] && echo "ALL PASSED" || { echo "SOME CHECKS FAILED"; exit 1; }
